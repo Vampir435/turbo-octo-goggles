@@ -1,0 +1,374 @@
+# CSI Game Prog. Final Projet
+# Names: Amanda Alliance 
+# Date:
+# "PyFIGHT" - A single-player game where the user fights an opponent that
+# follows them.
+import pygame
+from random import randint
+pygame.init()
+
+x = 0
+y = 0
+
+WIDTH = 400
+HEIGHT = 254
+
+RANDOMIZER = 2
+
+GRAVITY = 1
+
+TITLECOLOR = ((255,255,255))
+
+CLOSINGCOLOR = ((0,0,0))
+
+SCORECOLOR = ((0,0,0))
+SCORETEXTCOLOR = ((255,255,255))
+
+BLACK     = (0,0,0)
+RED       = (255,0,0)
+GREEN     = (0,255,0)
+BLUE      = (0,0,255)
+YELLOW    = (255,255,0)
+MAGENTA   = (255,0,255)
+CYAN      = (0,255,255)
+WHITE     = (255,255,255)
+
+NUM_WINS = 0
+FIGHTER_HEALTH = 0
+
+screen = pygame.display.set_mode( (WIDTH, HEIGHT) )
+
+# Label sprites are used for the timer, the title screen, etc.
+class Label(pygame.sprite.Sprite):
+    
+    def __init__(self, msg, center, fontFile, textSize, textColor):
+        pygame.sprite.Sprite.__init__(self)
+        self.font     = pygame.font.Font(fontFile, textSize)
+        self.text     = msg
+        self.center   = center
+        self.txtColor = textColor
+
+    def update(self):
+        self.image       = self.font.render(self.text, 1, self.txtColor)
+        self.rect        = self.image.get_rect()  # get a new rect after any text change
+        self.rect.center = self.center
+    import time
+    while True:
+        win = imput(">>")
+        try:
+            if when_to_stop > -1:
+                m, s = divmod( when_to_stop,60)
+                h, m = divmod(m, 60)
+                time_left = str(h).zfill(2) + ":" + str(m).zfill(2) + str(s).zfill(2)
+                print(time_left + "\r", end="")
+                time.sleep(1)
+                when_to_stop-=1
+#####################################################################
+# The Timer shows how much time remains.
+class Timer(pygame.sprite.Sprite):
+
+    def __init__(self):
+        pygame.sprite.Sprite.__init__(self)
+        frame_count = 0
+        frame_rate = 60
+        start_time = 90
+        self.font = pygame.font.SysFont("Comic Sans MS", 30)
+        
+    def update(self):
+        self.text = "   Wins: " + str(self.wins)
+        self.image = self.font.render(self.text, 1, WHITE)
+        self.rect = self.image.get_rect()
+                          
+        self.text = "  Wins:  " + str(self.wins + 1)
+#######################################################################
+# def of Fighter class.
+class Fighter (pygame.sprite.Sprite):
+    
+    def __init__(self, position, speedx):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.image.load("Fighter.png")
+        self.image = self.image.convert()
+        self.image.set_colorkey( self.image.get_at((1,1)) )
+        self.rect = self.image.get_rect()
+        self.rect.center = position  
+        self.dx = speedx
+        self.dy = 0
+        self.grounded = True
+        Fighter.immunity = False # Here's the value I made for the immunity.
+
+    def jump(self): 
+        if self.grounded == True:
+            self.dy = -10
+            self.grounded = False
+
+    def update(self):
+        if self.rect.centery <= 206:
+            self.dy = self.dy + GRAVITY
+            self.rect.centery += self.dy
+            if self.rect.centery >= 206:
+                self.rect.centery = 206
+                self.grounded = True
+                ####################
+    def hit(self): # I was thinking here that it could have a way of checking if
+        # the fighter is touching the opponent, and an if statment for if it does.
+        pass
+    
+    def leftMove(self):
+        self.rect.centerx -= self.dx
+
+    def rightMove(self):
+        self.rect.centerx += self.dx
+
+####################
+# Draw opening screen with directions and click to start.
+def titleScreen():
+    
+    background = pygame.Surface(screen.get_size())
+    background = background.convert()
+    background.fill(TITLECOLOR)    
+    screen.blit(background, (0,0))
+
+    title = Label("PYFIGHT!", (WIDTH //2, HEIGHT //2), None, 90, RED)
+    gameinst = Label("Click to start", (WIDTH //2, HEIGHT //2 + 70), None, 30, RED)
+    labelGroup = pygame.sprite.Group(title, gameinst)
+
+    clock = pygame.time.Clock()
+    keepGoing = True
+
+    while keepGoing:  
+        clock.tick(30) 
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT or event.type == pygame.MOUSEBUTTONDOWN:
+                keepGoing = False
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE or event.key == pygame.K_q:
+                    keepGoing = False
+                                                       
+        labelGroup.clear(screen, background)
+        labelGroup.update()
+        labelGroup.draw(screen)
+        
+        pygame.display.flip()
+                
+#####################################################################
+        
+# Upload the game backgroud.
+
+# def of Opponent class. 
+class Opponent (pygame.sprite.Sprite):
+    
+    def __init__(self, position, speed):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = pygame.image.load("Villain.png")
+        self.image = self.image.convert()
+        self.image.set_colorkey( self.image.get_at((1,1)) )
+        self.rect = self.image.get_rect()
+        self.rect.center = position
+        self.dx = speed
+
+# Upload sprite for opponent and have it follow the fighter.
+    def update(self):
+        
+        if self.alive :     
+            self.dx += randint(-RANDOMIZER, RANDOMIZER)
+          
+            self.rect.centerx += self.dx
+            if self.rect.right >= WIDTH:   
+                self.dx = -self.dx            
+            
+            elif self.rect.left <= 0:          
+                self.dx = -self.dx
+
+            if self.dx > 5:
+                self.dx = 5
+                
+            elif self.dx < -5:
+                self.dx = -5
+
+
+# The game() function performs the actual gameplay.  Returns a boolean
+def game(): #(SO, PUT FIGHTER, OPPONENT, SCOREBOARD ALL THE STIFF THAT MAKES THE GAME.)
+    #(CREATE WHAT THE NOTE SAID UP ABOVE, BELOW ARE JUST CLASS DEF.)
+   
+    background = pygame.image.load("background.gif")
+    background = background.convert()
+    screen.blit(background, (0,0))  # Blit background to screen
+    clock = pygame.time.Clock()
+    keepGoing = True
+    walk = False
+    win = False
+    FIGHTER_HEALTH = 1
+
+    fighter = Fighter((100,206), 10)
+    opponent = Opponent((300,206), 2)
+    opponentgroup = pygame.sprite.Group(opponent)
+    allSprites = pygame.sprite.Group(fighter,opponentgroup)
+
+    if keepGoing == True:
+        pygame.mixer.init()
+        music = pygame.mixer.Sound("pyfight.mus.mp3")
+        #music.play()
+    while keepGoing:
+
+        clock.tick(30)
+        
+        if pygame.sprite.collide_rect(fighter, opponent) :
+            win = False
+            keepGoing = False
+
+        total_seconds = frame_count // frame_rate
+        minutes = total_seconds // 60
+        seconds = total_seconds % 60
+        output_string = "Time: {0:02}:{1:02}".format(minutes, seconds)
+        text = font.render(output_string, True, BLACK)
+        screen.blit(text, [250, 250])
+        total_seconds = start_time - (frame_count // frame_rate)
+            if total_seconds < 0:
+                total_seconds = 0
+        minutes = total_seconds // 60
+        seconds = total_seconds % 60
+        output_string = "Time left: {0:02}:{1:02}".format(minutes, seconds)
+        text = font.render(output_string, True, BLACK)
+        screen.blit(text, [250, 280])
+        frame_count += 1
+        clock.tick(frame_rate)
+        pygame.display.flip()
+            
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:  # If user clicked close
+            keepGoing = False
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_LEFT: # Moves the sprite to the left.
+                    fighter.leftMove()
+                elif event.key == pygame.K_RIGHT: # Moves the sprite to the right.
+                    fighter.rightMove()
+                elif event.key == pygame.K_UP:
+                    fighter.jump()
+
+        allSprites.clear(screen,background)
+        allSprites.update()
+        allSprites.draw(screen)
+        pygame.display.flip()
+    return win 
+#####################################################################
+# Draw play again screen and include user interaction.
+# playAgain asks the obvious question.  Returns a boolean.
+
+def playAgain(winLose):
+   
+    background = pygame.Surface(screen.get_size())
+    background = background.convert()
+    background.fill(( 220,0,0))    # Fill the background
+    screen.blit(background, (0,0))
+
+
+    replay = False
+
+    if winLose:
+        message = "WINNER"
+        fillColor = (255, 255, 128)
+    else:
+        message = "LOSER"
+        fillColor = (128,128,255)
+
+    background.fill( fillColor )        
+    screen.blit(background, (0,0))      
+
+    position = (screen.get_width()//2, screen.get_height()//3)
+    msg1 = Label(message, position, None, 30, WHITE)
+   
+    message = "CARE TO FIGHT AGAIN?!(Y/N)"
+    position = (screen.get_width()//2, screen.get_height()//2)
+    msg2 = Label(message, position, None, 30, WHITE)
+   
+    labelGroup = pygame.sprite.Group( msg1, msg2 )
+
+    clock = pygame.time.Clock()
+    keepGoing = True
+    replay = False
+
+    while keepGoing:
+   
+        clock.tick(30)  
+
+        for event in pygame.event.get():
+            if event.type ==pygame.MOUSEBUTTONDOWN:
+                keepGoing = False
+            elif event.type == pygame.KEYDOWN:
+                keepGoing = False
+                if event.key == pygame.K_n:
+                    keepGoing = False
+                elif event.key ==pygame.K_y:
+                    keepGoing = False
+                    replay = True
+               
+        labelGroup.clear(screen, background)
+        labelGroup.update()
+        labelGroup.draw(screen)
+
+        pygame.display.flip()
+       
+    return replay
+
+#####################################################################################################
+# endScreen puts up a final thankyou or credits screen for a short time, and then closes.
+def endScreen():
+   
+    background = pygame.Surface(screen.get_size())
+    background = background.convert()
+    background.fill(( 198,0,0))       # Fill the background
+    screen.blit(background, (0,0))  # Blit background to screen
+
+    message = "YOU LIVE TO FIGHT AGAIN!"
+    position = (screen.get_width()//2, screen.get_height()//3)
+    msg1 = Label(message, position, None, 30, BLACK)
+    message = "Amanda and Joe"
+    position = (screen.get_width()//2, screen.get_height()//2)
+    msg2 = Label(message, position, None, 25, BLACK)
+    labelGroup = pygame.sprite.Group( msg1, msg2 )
+   
+    clock = pygame.time.Clock()
+    keepGoing = True
+    frames = 0                  
+
+    while keepGoing:
+   
+        clock.tick(30)          # Frame rate 30 frames per second.
+
+        frames = frames + 1     # Count the number of frames displayed
+
+        if frames == 60:        # After 2 seconds (= 60 frames) end the message display
+            keepGoing = False
+
+        for event in pygame.event.get():
+            # Impatient people can quit earlier by clicking the mouse or pressing any key
+            if ( event.type == pygame.MOUSEBUTTONDOWN or event.type == pygame.KEYDOWN ):
+                keepGoing = False
+           
+        labelGroup.clear(screen, background)
+        labelGroup.update()
+        labelGroup.draw(screen)
+
+        pygame.display.flip()
+
+
+
+#####################################################################
+def main():
+    
+    titleScreen()
+
+    replay = True
+    while replay:
+            result = game()
+            replay = playAgain(result)
+
+    endScreen()
+
+main()
+
+# Clean it up
+pygame.quit()
+
+
